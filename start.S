@@ -58,7 +58,8 @@ save_boot_params_ret:
 	bl      cpu_init_cp15
 	bl      cpu_init_crit
 
-	bl	_main
+	b	_main
+	
 
 /*
  * here r0 might be containing some information, store it in scratch space SRAM location @ 0x4030B424
@@ -155,5 +156,7 @@ lowlevel_init:
 	mov     r9, #0 /* #ifdef CONFIG_SPL_DM */
 	bx      lr /* return to caller */
 
+/*
 _main:
 	b .
+*/
