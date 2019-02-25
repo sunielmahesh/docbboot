@@ -11,7 +11,8 @@ CFLAGS += -mfpu=neon
 ASFLAGS := -mcpu=cortex-a8
 ASFLAGS += -mfpu=neon
 LDFLAGS = -T u-boot-spl.lds -Map=$*.map
-OBJS = dummy_app.o
+# only c source files go here
+OBJS = dummy_app.o board.o
 
 %.bin: %.elf
 	@echo "converting .elf to .bin"

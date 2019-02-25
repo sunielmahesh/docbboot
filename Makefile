@@ -8,6 +8,6 @@ all: ${BINS}
 
 show: dummy_app_disasm
 
-dummy_app.elf: start.o vector.o
+dummy_app.elf: start.o vector.o crt0.o board.o
 
 include rules.mk
