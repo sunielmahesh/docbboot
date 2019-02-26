@@ -28,8 +28,8 @@ void early_system_init(void)
 {
 	watchdog_disable();
 	set_uart_mux_conf();
-/*        setup_early_clocks();
-        uart_soft_reset(); */
+	setup_early_clocks();
+/*        uart_soft_reset(); */
 /*
  * Save the boot parameters passed from romcode.
  * We cannot delay the saving further than this,
