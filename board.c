@@ -6,6 +6,8 @@
 #include "include/doc_watchdog.h"
 #include "include/doc_hardware_am33xx.h"
 #include "include/doc_board.h"
+#include "include/doc_cpu.h"
+#include "include/doc_clock.h"
 
 static void watchdog_disable(void)
 {
@@ -24,12 +26,30 @@ void set_uart_mux_conf(void)
         enable_uart0_pin_mux();
 }
 
+static void uart_soft_reset(void)
+{
+        struct uart_sys *uart_base = (struct uart_sys *)UART0_BASE;
+        u32 regval;
+
+        regval = readl(&uart_base->uartsyscfg);
+        regval |= UART_RESET;
+        writel(regval, &uart_base->uartsyscfg);
+/* while loop indicates reset is done => comes out of loop */
+        while ((readl(&uart_base->uartsyssts) &
+                UART_CLK_RUNNING_MASK) != UART_CLK_RUNNING_MASK);
+
+        /* Disable smart idle */
+        regval = readl(&uart_base->uartsyscfg);
+        regval |= UART_SMART_IDLE_EN;
+        writel(regval, &uart_base->uartsyscfg);
+}
+
 void early_system_init(void)
 {
 	watchdog_disable();
 	set_uart_mux_conf();
 	setup_early_clocks();
-/*        uart_soft_reset(); */
+	uart_soft_reset();
 /*
  * Save the boot parameters passed from romcode.
  * We cannot delay the saving further than this,
