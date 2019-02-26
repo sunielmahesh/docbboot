@@ -4,8 +4,8 @@
 
 #include "include/doc_io_barrier.h"
 #include "include/doc_watchdog.h"
-#include "include/doc_board.h"
 #include "include/doc_hardware_am33xx.h"
+#include "include/doc_board.h"
 
 static void watchdog_disable(void)
 {
@@ -19,11 +19,16 @@ static void watchdog_disable(void)
                 ;
 }
 
+void set_uart_mux_conf(void)
+{
+        enable_uart0_pin_mux();
+}
+
 void early_system_init(void)
 {
 	watchdog_disable();
-/*        set_uart_mux_conf();
-        setup_early_clocks();
+	set_uart_mux_conf();
+/*        setup_early_clocks();
         uart_soft_reset(); */
 /*
  * Save the boot parameters passed from romcode.
