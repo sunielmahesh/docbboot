@@ -9,6 +9,7 @@
 #include "include/doc_cpu.h"
 #include "include/doc_clock.h"
 #include "include/doc_davinci_rtc.h"
+#include "include/doc_debug_uart.h"
 
 static void watchdog_disable(void)
 {
@@ -72,6 +73,7 @@ void early_system_init(void)
 	set_uart_mux_conf();
 	setup_early_clocks();
 	uart_soft_reset();
+	debug_uart_init();
 /* Enable RTC32K clock */
 	rtc32k_enable();
 }
