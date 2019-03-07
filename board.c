@@ -81,6 +81,6 @@ void early_system_init(void)
 void board_init_f(void)
 {
 	early_system_init();
- //       board_early_init_f();
+	board_early_init_f();
 //        sdram_init();
 }
