@@ -13,14 +13,7 @@
 
 static void watchdog_disable(void)
 {
-        struct wd_timer *wdtimer = (struct wd_timer *)WDT_BASE;
-
-        writel(0xAAAA, &wdtimer->wdtwspr);
-        while (readl(&wdtimer->wdtwwps) != 0x0)
-                ;
-        writel(0x5555, &wdtimer->wdtwspr);
-        while (readl(&wdtimer->wdtwwps) != 0x0)
-                ;
+	hw_watchdog_disable();
 }
 
 void set_uart_mux_conf(void)
