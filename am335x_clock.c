@@ -2,8 +2,8 @@
 #include "include/doc_clock.h"
 #include "include/doc_cpu.h"
 #include "include/doc_hardware_am33xx.h"
+#include "include/doc_timer.h"
 
-#define TIMER_LOAD_VAL		0
 #define LDELAY			1000000
 
 struct cm_perpll *const cmper = (struct cm_perpll *)CM_PER;
@@ -134,17 +134,6 @@ void enable_basic_clocks(void)
 
         /* Select the Master osc 24 MHZ as Timer2 clock source */
         writel(0x1, &cmdpll->clktimer2clk);
-}
-
-int timer_init(void)
-{
-        /* start the counter ticking up, reload value on overflow */
-        writel(TIMER_LOAD_VAL, &timer_base->tldr);
-        /* enable timer */
-//        writel((CONFIG_SYS_PTV << 2) | TCLR_PRE | TCLR_AR | TCLR_ST, &timer_base->tclr);
-        writel((2 << 2) | TCLR_PRE | TCLR_AR | TCLR_ST, &timer_base->tclr);
-
-        return 0;
 }
 
 void setup_early_clocks(void)

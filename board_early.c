@@ -3,6 +3,7 @@
 #include "include/doc_debug_uart.h"
 #include "include/doc_io_barrier.h"
 #include "include/doc_clock.h"
+#include "include/doc_timer.h"
 
 #define PACKAGE_TYPE_MASK	(3 << 16)
 #define PACKAGE_TYPE_SHIFT	16
@@ -66,6 +67,11 @@ int am335x_get_efuse_mpu_max_freq(struct ctrl_dev *cdev)
         return MPUPLL_M_720;
 }
 
+/*void scale_vcores_bone(int freq)
+{
+	if (i2c_probe(TPS65217_CHIP_PM))
+                return;
+}*/
 
 void scale_vcores(void)
 {
@@ -76,6 +82,7 @@ void scale_vcores(void)
 	print_num(freq);
 	print_str("Hz");
         print_nl();
+	__udelay(3000); //delay 3000 micro sec
 //	scale_vcores_bone(freq);
 }
 
