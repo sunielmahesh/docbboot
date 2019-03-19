@@ -10,6 +10,8 @@
 #include "include/doc_clock.h"
 #include "include/doc_davinci_rtc.h"
 #include "include/doc_debug_uart.h"
+#include "include/doc_i2c.h"
+#include "include/doc_mux.h"
 
 static void watchdog_disable(void)
 {
@@ -60,6 +62,15 @@ static void rtc32k_enable(void)
         writel((1 << 3) | (1 << 6), &rtc->osc);
 }
 
+void do_board_detect(void)
+{
+	unsigned int addr = 0x0;
+
+	enable_i2c0_pin_mux();
+	i2c_init();
+	ti_i2c_eeprom_read(addr, CONFIG_EEPROM_CHIP_ADDRESS);
+}
+
 void early_system_init(void)
 {
 	watchdog_disable();
@@ -67,6 +78,7 @@ void early_system_init(void)
 	setup_early_clocks();
 	uart_soft_reset();
 	debug_uart_init();
+	do_board_detect();
 /* Enable RTC32K clock */
 	rtc32k_enable();
 }
