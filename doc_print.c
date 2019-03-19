@@ -37,15 +37,18 @@ void print_num(unsigned int n)
 void print_hex(unsigned int n)
 {
 	int i;
-	char c;
+	char c, fbit = 0;
 
-	_debug_uart_putc('0');
-	_debug_uart_putc('x');
+//	_debug_uart_putc('0');
+//	_debug_uart_putc('x');
 	for (i = 7; i >= 0; i--)
 	{
 		c = ((n >> (i << 2)) & 0xF);
-		c += ((c <= 9) ? '0' : (-10 + 'A'));
-		_debug_uart_putc(c);
+		if (c != 0 || fbit) {
+			c += ((c <= 9) ? '0' : (-10 + 'A'));
+			_debug_uart_putc(c);
+			fbit = 1;
+		} 
 	}
 }
 
