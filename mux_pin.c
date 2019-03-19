@@ -6,6 +6,24 @@ static struct module_pin_mux uart0_pin_mux[] = {
         {-1},
 };
 
+/* this was pinmux according to sysplay
+static struct module_pin_mux i2c0_pin_mux[] = {
+        {OFFSET(i2c0_sda), (MODE(0) | RXACTIVE |
+                        PULLUDEN | PULLUP_EN)},  //I2C_DATA
+        {OFFSET(i2c0_scl), (MODE(0) | RXACTIVE |
+                        PULLUDEN | PULLUP_EN)},  //I2C_SCLK
+        {-1},
+};
+*/
+
+static struct module_pin_mux i2c0_pin_mux[] = {
+        {OFFSET(i2c0_sda), (MODE(0) | RXACTIVE |
+                        PULLUDEN | SLEWCTRL)},  //I2C_DATA
+        {OFFSET(i2c0_scl), (MODE(0) | RXACTIVE |
+                        PULLUDEN | SLEWCTRL)},  //I2C_SCLK
+        {-1},
+};
+
 void configure_module_pin_mux(struct module_pin_mux *mod_pin_mux)
 {
         int i;
@@ -20,4 +38,9 @@ void configure_module_pin_mux(struct module_pin_mux *mod_pin_mux)
 void enable_uart0_pin_mux(void)
 {
         configure_module_pin_mux(uart0_pin_mux);
+}
+
+void enable_i2c0_pin_mux(void)
+{
+        configure_module_pin_mux(i2c0_pin_mux);
 }
