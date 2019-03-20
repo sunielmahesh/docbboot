@@ -65,10 +65,45 @@ static void rtc32k_enable(void)
 void do_board_detect(void)
 {
 	unsigned int addr = 0x0;
+	unsigned char hdr_read[12];
+	unsigned char len = 12; // read the first 12 bytes of eeprom
+        unsigned char byte = 2;
+	unsigned int cp = 0;
+	int i, j = 0;
 
 	enable_i2c0_pin_mux();
 	i2c_init();
-	ti_i2c_eeprom_read(addr, CONFIG_EEPROM_CHIP_ADDRESS);
+	ti_i2c_eeprom_read(addr, CONFIG_EEPROM_CHIP_ADDRESS, byte, hdr_read, len);
+	
+	print_str("EEPROM header contents are 0x");
+        for (i = 0; i < 4; i++ ) {
+                cp = cp | (hdr_read[i] << j);
+                j = j + 8;
+        }
+        print_hex(cp);
+        print_nl();
+
+        print_str("Board name read from EEPROM:");
+        j = 48;
+        for (i = 4; i < 12; i++ ) {
+                cp = hdr_read[i];
+                if (cp > 47 && cp < 58) {
+                        cp = cp - j;
+                        print_num(cp);
+                } else {
+                        if (cp == 65)
+                                print_str("A");
+                        else if (cp == 66)
+                                print_str("B");
+                        else if (cp == 76)
+                                print_str("L");
+                        else if (cp == 78)
+                                print_str("N");
+                        else if (cp == 84)
+                                print_str("T");
+                }
+        }
+        print_nl();
 }
 
 void early_system_init(void)
