@@ -76,7 +76,6 @@ int send_start(void)
 	
 	while (__raw_readl(&i2c_base->con) & I2C_CON_STT) // Wait for start complete
                 ;
-
         return 0;
 }
 
@@ -111,9 +110,6 @@ int recv_data(unsigned char *data)
                 ;
         *data = __raw_readl(&i2c_base->data); // Read data
 	__raw_writel(__raw_readl(&i2c_base->stat) | I2C_STAT_RRDY, &i2c_base->stat); // Clear ready for reading data from Rx
-//	print_hex(*data);
-//	print_nl();
-//	print_str_nl("in recv_data");
         return 0;
 }
 
@@ -140,12 +136,16 @@ int i2c_master_tx_rx(unsigned int addr, unsigned int *tx_data, unsigned char tx_
 		send_stop(); 
 		return -1;
 	}
-        
-	for (i = 0; i < tx_len; i++) {// Send Data
-		if(send_data(tx_data[i])) {
-			send_stop(); 
-			print_str_nl("returning -1");
-			return -1;
+
+	if (tx_len < 2)
+		send_data((unsigned int)tx_data);
+	else {
+		for (i = 0; i < tx_len; i++) {// Send Data
+			if(send_data(tx_data[i])) {
+				send_stop(); 
+				print_str_nl("returning -1");
+				return -1;
+			}
 		}
 	}
         
@@ -155,27 +155,56 @@ int i2c_master_tx_rx(unsigned int addr, unsigned int *tx_data, unsigned char tx_
 	__raw_writel(__raw_readl(&i2c_base->stat) | I2C_STAT_ARDY, &i2c_base->stat);
         __raw_writel(rx_len & 0xFF, &i2c_base->cnt); // Set the rx data count
 	__raw_writel(__raw_readl(&i2c_base->con) & ~(1 << 9), &i2c_base->con); // Set the Master Rx mode - note master is already set
-//	print_hex(__raw_readl(&i2c_base->cnt));
-//	print_nl();
-	
+
 	if(send_restart()) { // Trigger by sending Start again
 		send_stop();
 		return -1;
 	}
-        
-	for (i = 0; i < rx_len; i++) {// Receive Data
-//		print_num(rx_len);
-//		print_nl();
-//		print_hex((unsigned int)rx_data[i]);
-//		print_nl();
-		if(recv_data(&rx_data[i])) {
-			send_stop();
-			return -1;
+
+	if (rx_len < 2) {
+		if(recv_data(rx_data)) {
+                        send_stop();
+                        return -1;
+		}
+	}
+	else {
+		for (i = 0; i < rx_len; i++) {// Receive Data
+			if(recv_data(&rx_data[i])) {
+				send_stop();
+				return -1;
+			}
 		}
 	}
         
 	send_stop(); // Done, so Stop
         return 0;
+}
+
+int i2c_master_tx(unsigned int reg_chip, unsigned int *data, unsigned char len)
+{
+	struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
+        int i;
+
+        __raw_writel(reg_chip, &i2c_base->sa);
+        __raw_writel(len & 0xFF, &i2c_base->cnt);
+        __raw_writel(__raw_readl(&i2c_base->con) | I2C_CON_TRX | I2C_CON_MST, &i2c_base->con);
+
+	if(send_start()) { // Trigger by sending Start
+                send_stop();
+                return -1;
+        }
+
+
+	for (i = 0; i < len; i++) {
+		if (send_data(data[i])) {
+			send_stop();
+			print_str_nl("returning -1");
+			return -1;
+		}
+	}
+
+	send_stop(); // Done, so Stop
+	return 0;
 }
 
 int ti_i2c_eeprom_read(unsigned int addr, unsigned int chip, unsigned char byte,
@@ -186,5 +215,22 @@ int ti_i2c_eeprom_read(unsigned int addr, unsigned int chip, unsigned char byte,
 
         i2c_master_tx_rx(chip, eeprom_data, byte, hdr_read, len);
 	return 0;
+}
+
+int ti_i2c_regulator_read(unsigned int reg_chip, unsigned char offset, unsigned char byte,
+			unsigned char *hdr_read, unsigned char len)
+{
+
+        i2c_master_tx_rx(reg_chip,(unsigned int *)offset, byte, hdr_read, len);
+	return 0;
+}
+
+int ti_i2c_regulator_write(unsigned int reg_chip, unsigned char offset, unsigned char byte,
+				unsigned char *val, unsigned char len)
+{
+        unsigned int reg_data[2] = { (unsigned int)offset, (unsigned int)*val};
+
+	i2c_master_tx(reg_chip, reg_data, 2);
+	return 0;	
 }
 

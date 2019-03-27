@@ -4,6 +4,7 @@
 #include "include/doc_io_barrier.h"
 #include "include/doc_clock.h"
 #include "include/doc_timer.h"
+#include "include/doc_regulator.h"
 
 #define PACKAGE_TYPE_MASK	(3 << 16)
 #define PACKAGE_TYPE_SHIFT	16
@@ -67,11 +68,43 @@ int am335x_get_efuse_mpu_max_freq(struct ctrl_dev *cdev)
         return MPUPLL_M_720;
 }
 
-/*void scale_vcores_bone(int freq)
+void scale_vcores_bone(int freq)
 {
-	if (i2c_probe(TPS65217_CHIP_PM))
+	int usb_cur_lim, mpu_vdd;
+
+	if (freq == MPUPLL_M_1000) {
+		mpu_vdd = TPS65217_DCDC_VOLT_SEL_1325MV;
+                usb_cur_lim = TPS65217_USB_INPUT_CUR_LIMIT_1800MA;
+	}
+
+	tps65217_reg_write(TPS65217_PROT_LEVEL_NONE, TPS65217_POWER_PATH, usb_cur_lim, TPS65217_USB_INPUT_CUR_LIMIT_MASK);
+
+	/* Set DCDC3 (CORE) voltage to 1.10V */
+	if (tps65217_voltage_update(TPS65217_DEFDCDC3, TPS65217_DCDC_VOLT_SEL_1100MV)) {
+                print_str_nl("tps65217_voltage_update failure");
                 return;
-}*/
+        }
+
+	/* Set DCDC2 (MPU) voltage */
+        if (tps65217_voltage_update(TPS65217_DEFDCDC2, mpu_vdd)) {
+                print_str_nl("tps65217_voltage_update failure");
+                return;
+        }
+
+/* Set LDO3 to 1.8V and LDO4 to 3.3V for Beaglebone Black */
+	if(tps65217_reg_write(TPS65217_PROT_LEVEL_2, TPS65217_DEFLS1, TPS65217_LDO_VOLTAGE_OUT_1_8,
+				TPS65217_LDO_MASK)) {
+		print_str_nl("tps65217_reg_write failure");
+		return;
+	}
+
+	if(tps65217_reg_write(TPS65217_PROT_LEVEL_2, TPS65217_DEFLS2, TPS65217_LDO_VOLTAGE_OUT_3_3,
+				TPS65217_LDO_MASK)) {
+		print_str_nl("tps65217_reg_write failure");
+		return;
+	}
+	return;
+}
 
 void scale_vcores(void)
 {
@@ -83,7 +116,7 @@ void scale_vcores(void)
 	print_str("Hz");
         print_nl();
 	__udelay(3000); //delay 3000 micro sec
-//	scale_vcores_bone(freq);
+	scale_vcores_bone(freq);
 }
 
 void prcm_init(void)
