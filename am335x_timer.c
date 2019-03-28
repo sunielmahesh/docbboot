@@ -10,10 +10,11 @@
 #define TIMER_CLOCK             (V_SCLK / (2 << CONFIG_SYS_PTV))
 #define TIMER_OVERFLOW_VAL      0xffffffff
 
+struct gptimer *timer_base = (struct gptimer *)CONFIG_SYS_TIMERBASE;
 
 int timer_init(void)
 {
-	struct gptimer *timer_base = (struct gptimer *)CONFIG_SYS_TIMERBASE;
+//	struct gptimer *timer_base = (struct gptimer *)CONFIG_SYS_TIMERBASE;
 
         /* start the counter ticking up, reload value on overflow */
         __raw_writel(TIMER_LOAD_VAL, &timer_base->tldr);
@@ -37,7 +38,7 @@ int timer_init(void)
 /* delay x useconds */
 void __udelay(unsigned long usec)
 {
-	struct gptimer *timer_base = (struct gptimer *)CONFIG_SYS_TIMERBASE;
+//	struct gptimer *timer_base = (struct gptimer *)CONFIG_SYS_TIMERBASE;
         long tmo = usec * (TIMER_CLOCK / 1000) / 1000;
         unsigned long now, last = __raw_readl(&timer_base->tcrr);
 

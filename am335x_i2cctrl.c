@@ -3,9 +3,11 @@
 #include "include/doc_i2c.h"
 #include "include/doc_debug_uart.h"
 
+static struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
+
 void i2c_init(void)
 {
-	struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
+//	struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
 	unsigned long internal_clk = 0, fclk;
         unsigned int speed, prescaler;
 	unsigned int scll, sclh;
@@ -67,7 +69,7 @@ void i2c_init(void)
 
 int send_start(void)
 {
-	struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
+//	struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
 
         while (__raw_readl(&i2c_base->stat) & I2C_STAT_BB) // Wait for bus not busy
                 ;
@@ -81,7 +83,7 @@ int send_start(void)
 
 int send_data(unsigned int data)
 {
-	struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
+//	struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
 
         while (!(__raw_readl(&i2c_base->stat) & I2C_STAT_XRDY)) // Wait for ready for accepting data for Tx
 		;
@@ -94,7 +96,7 @@ int send_data(unsigned int data)
 
 int send_restart(void)
 {
-	struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
+//	struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
 
 	__raw_writel(__raw_readl(&i2c_base->con) | I2C_CON_STT, &i2c_base->con); // Trigger start again
         while (__raw_readl(&i2c_base->con) & I2C_CON_STT) // Wait for start complete
@@ -104,7 +106,7 @@ int send_restart(void)
 
 int recv_data(unsigned char *data)
 {
-	struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
+//	struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
 
         while (!(__raw_readl(&i2c_base->stat) & I2C_STAT_RRDY)) // Wait for ready for reading data from Rx
                 ;
@@ -115,7 +117,7 @@ int recv_data(unsigned char *data)
 
 void send_stop(void)
 {
-	struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
+//	struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
 
 	__raw_writel(__raw_readl(&i2c_base->con) | I2C_CON_STP, &i2c_base->con); // Trigger stop
         while (__raw_readl(&i2c_base->con) & I2C_CON_STP) // Wait for stop complete
@@ -125,7 +127,7 @@ void send_stop(void)
 int i2c_master_tx_rx(unsigned int addr, unsigned int *tx_data, unsigned char tx_len,
 			unsigned char *rx_data, unsigned char rx_len)
 {
-	struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
+//	struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
         int i;
 
 	__raw_writel(addr, &i2c_base->sa);
@@ -182,7 +184,7 @@ int i2c_master_tx_rx(unsigned int addr, unsigned int *tx_data, unsigned char tx_
 
 int i2c_master_tx(unsigned int reg_chip, unsigned int *data, unsigned char len)
 {
-	struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
+//	struct i2c *i2c_base = (struct i2c *)I2C_BASE0;
         int i;
 
         __raw_writel(reg_chip, &i2c_base->sa);

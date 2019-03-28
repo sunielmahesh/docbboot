@@ -4,6 +4,8 @@
 #include "include/doc_hardware_am33xx.h"
 #include "include/doc_io_barrier.h"
 
+struct wkup_uart0 *com_port = (struct wkup_uart0 *)UART0_BASE;
+
 /*
  * UART0 Transmit character - single byte
  * we are in an infinite loop, checking for LSR[5], if LSR[5] = 1 => TxFIFO is empty
@@ -11,7 +13,7 @@
  */
 void _debug_uart_putc(unsigned char ch)
 {
-        struct wkup_uart0 *com_port = (struct wkup_uart0 *)UART0_BASE;
+//        struct wkup_uart0 *com_port = (struct wkup_uart0 *)UART0_BASE;
 
         __raw_writel(ch, &com_port->thr_rhr_dll);
         while (!(__raw_readl(&com_port->lsr) & 0x20))
@@ -30,7 +32,7 @@ void _debug_uart_putc(unsigned char ch)
  */
 unsigned char _debug_uart_getc(void)
 {
-        struct wkup_uart0 *com_port = (struct wkup_uart0 *)UART0_BASE;
+//        struct wkup_uart0 *com_port = (struct wkup_uart0 *)UART0_BASE;
 
         while (!(__raw_readl(&com_port->lsr) & 0x01))
                 ;
@@ -81,7 +83,7 @@ void debug_tx(char *str)
  */
 void _debug_uart_init(void)
 {
-        struct wkup_uart0 *com_port = (struct wkup_uart0 *)UART0_BASE;
+//        struct wkup_uart0 *com_port = (struct wkup_uart0 *)UART0_BASE;
         unsigned short baud_divisor = 26;
 
 	__raw_writel(0x7, &com_port->mdr1);

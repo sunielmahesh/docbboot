@@ -17,11 +17,12 @@
  */
 #define GET_WLDR_VAL(secs)      (0xffffffff - ((secs) * (32768/(1<<PTV))) + 1)
 
+struct wd_timer *wdt = (struct wd_timer *)WDT_BASE;
 static unsigned int wdt_trgr_pattern = 0x1234;
 
 void hw_watchdog_reset(void)
 {
-        struct wd_timer *wdt = (struct wd_timer *)WDT_BASE;
+//        struct wd_timer *wdt = (struct wd_timer *)WDT_BASE;
 
         /* wait for posted write to complete */
         while ((__raw_readl(&wdt->wdtwwps)) & (1 << 3))
@@ -38,7 +39,7 @@ void hw_watchdog_reset(void)
 
 static int am335_wdt_set_timeout(unsigned int timeout)
 {
-        struct wd_timer *wdt = (struct wd_timer *)WDT_BASE;
+//        struct wd_timer *wdt = (struct wd_timer *)WDT_BASE;
         unsigned int pre_margin = GET_WLDR_VAL(timeout);
 
         while (__raw_readl(&wdt->wdtwwps) & (1 << 2))//polling
@@ -53,7 +54,7 @@ static int am335_wdt_set_timeout(unsigned int timeout)
 
 void hw_watchdog_init(void)
 {
-        struct wd_timer *wdt = (struct wd_timer *)WDT_BASE;
+//        struct wd_timer *wdt = (struct wd_timer *)WDT_BASE;
 
 /* 
  * initialize prescaler 
@@ -81,7 +82,7 @@ void hw_watchdog_init(void)
 
 void hw_watchdog_disable(void)
 {
-        struct wd_timer *wdt = (struct wd_timer *)WDT_BASE;
+//        struct wd_timer *wdt = (struct wd_timer *)WDT_BASE;
         /*
          * Disable watchdog
          */
