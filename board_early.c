@@ -5,6 +5,7 @@
 #include "include/doc_clock.h"
 #include "include/doc_timer.h"
 #include "include/doc_regulator.h"
+#include "include/doc_mux.h"
 
 #define PACKAGE_TYPE_MASK	(3 << 16)
 #define PACKAGE_TYPE_SHIFT	16
@@ -127,9 +128,14 @@ void prcm_init(void)
 	print_str_nl("DPLL Configuration complete");
 }
 
+void set_mux_conf_regs(void)
+{
+        enable_board_pin_mux();
+}
+
 int board_early_init_f(void)
 {
         prcm_init();
-//	set_mux_conf_regs();
+	set_mux_conf_regs();
         return 0;
 }
