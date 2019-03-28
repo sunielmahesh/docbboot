@@ -25,10 +25,11 @@
 #define AM335X_ZCE_300                  0x1FDF
 #define AM335X_ZCE_600                  0x1F9F
 
-static struct ctrl_dev *cdev = (struct ctrl_dev *)CTRL_DEVICE_BASE;
+//static struct ctrl_dev *cdev = (struct ctrl_dev *)CTRL_DEVICE_BASE;
 
-int am335x_get_efuse_mpu_max_freq(struct ctrl_dev *cdev)
+int am335x_get_efuse_mpu_max_freq(void)
 {
+	static struct ctrl_dev *cdev = (struct ctrl_dev *)CTRL_DEVICE_BASE;
         int sil_rev;
 	int efuse_arm_mpu_max_freq, package_type;
 
@@ -110,10 +111,10 @@ void scale_vcores(void)
 {
         int freq;
 
-        freq = am335x_get_efuse_mpu_max_freq(cdev);
+        freq = am335x_get_efuse_mpu_max_freq();
 	print_str("Maximum Frequency supported by the device: ");
 	print_num(freq);
-	print_str("Hz");
+	print_str("MHz");
         print_nl();
 	__udelay(3000); //delay 3000 micro sec
 	scale_vcores_bone(freq);
@@ -122,7 +123,8 @@ void scale_vcores(void)
 void prcm_init(void)
 {
         scale_vcores();
-//        setup_dplls();
+	setup_dplls();
+	print_str_nl("DPLL Configuration complete");
 }
 
 int board_early_init_f(void)
