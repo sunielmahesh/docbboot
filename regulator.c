@@ -85,9 +85,9 @@ int tps65217_reg_write(unsigned char prot_level, unsigned char dest_reg,
 	ret = ti_i2c_regulator_read(TPS65217_CHIP_PM, dest_reg, 1, &read_val, 1);
                 if (ret)
                         return ret;
-                print_str("new contents of Register:");
+/*                print_str("new contents of Register:");
                 print_hex(read_val);
-                print_nl();
+                print_nl(); */
 	
 	return 0;
 }
