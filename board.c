@@ -12,6 +12,7 @@
 #include "include/doc_debug_uart.h"
 #include "include/doc_i2c.h"
 #include "include/doc_mux.h"
+#include "include/doc_ddr3sdram.h"
 
 static void watchdog_disable(void)
 {
@@ -122,5 +123,5 @@ void board_init_f(void)
 {
 	early_system_init();
 	board_early_init_f();
-//        sdram_init();
+	sdram_init();
 }
