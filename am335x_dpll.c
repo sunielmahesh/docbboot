@@ -10,6 +10,7 @@
 #include "include/doc_clock.h"
 #include "include/doc_debug_uart.h"
 #include "include/doc_cpu.h"
+#include "include/doc_timer.h"
 
 const struct dpll_params dpll_core_1000MHz[NUM_CRYSTAL_FREQ] = {
                 {625, 11, -1, -1, 10, 8, 4},    /* 19.2 MHz */
@@ -29,6 +30,7 @@ const struct dpll_params dpll_per_192MHz[NUM_CRYSTAL_FREQ] = {
 const struct dpll_params dpll_ddr3_400MHz[NUM_CRYSTAL_FREQ] = {
                 {125, 5, 1, -1, -1, -1, -1}, /*19.2*/
                 {50, 2, 1, -1, -1, -1, -1}, /* 24 MHz */
+//                {303, 23, 1, -1, -1, -1, -1}, /* 24 MHz */
                 {16, 0, 1, -1, -1, -1, -1}, /* 25 MHz */
                 {200, 12, 1, -1, -1, -1, -1}  /* 26 MHz */
 };
@@ -101,26 +103,48 @@ const struct dpll_regs dpll_ddr_regs = {
 
 void setup_post_dividers(const struct dpll_regs *dpll_regs, const struct dpll_params *params)
 {
+	unsigned int rval = 0;
         /* Setup post-dividers */
-        if (params->m2 >= 0)
-                __raw_writel(params->m2, dpll_regs->cm_div_m2_dpll);
+	
+        if (params->m2 >= 0) {
+		rval = *((volatile unsigned int *)(0x44E00400 + 0xA0));
+		rval = rval & ~0x1F;
+		rval = rval | params->m2;
+/*		rval = __raw_readl(dpll_regs->cm_div_m2_dpll);
+		print_hex(params->m2);
+		print_nl();
+		print_hex(params->m2);
+		print_nl();
+		__raw_writel(params->m2, dpll_regs->cm_div_m2_dpll);*/
+		*((volatile unsigned int *)(0x44E00400 + 0xA0)) = rval;
+/*		print_str("addr cm_div_m2_dpll reg:");
+		print_hex(dpll_regs->cm_div_m2_dpll);
+		print_nl();
+		print_str("checking cm_div_m2_dpll reg:"); */
+		rval = *((volatile unsigned int *)(0x44E00400 + 0xA0));
+//		print_hex(rval);
+//		print_nl();
+	}
         if (params->m3 >= 0)
                 __raw_writel(params->m3, dpll_regs->cm_div_m3_dpll);
-        if (params->m4 >= 0)
+        if (params->m4 >= 0) {
                 __raw_writel(params->m4, dpll_regs->cm_div_m4_dpll);
-/*	print_str("checking cm_div_m4_dpll reg:");
-	print_hex(__raw_readl(dpll_regs->cm_div_m4_dpll));
-	print_nl(); */
-        if (params->m5 >= 0)
-                __raw_writel(params->m5, dpll_regs->cm_div_m5_dpll);
-/*	print_str("checking cm_div_m5_dpll reg:");
-	print_hex(__raw_readl(dpll_regs->cm_div_m5_dpll));
-	print_nl(); */
-        if (params->m6 >= 0)
-                __raw_writel(params->m6, dpll_regs->cm_div_m6_dpll);
-/*	print_str("checking cm_div_m6_dpll reg:");
-	print_hex(__raw_readl(dpll_regs->cm_div_m6_dpll));
-	print_nl(); */
+/*		print_str("checking cm_div_m4_dpll reg:");
+		print_hex(__raw_readl(dpll_regs->cm_div_m4_dpll));
+		print_nl(); */
+	}
+        if (params->m5 >= 0) {
+		__raw_writel(params->m5, dpll_regs->cm_div_m5_dpll);
+/*		print_str("checking cm_div_m5_dpll reg:");
+		print_hex(__raw_readl(dpll_regs->cm_div_m5_dpll));
+		print_nl(); */
+	}
+        if (params->m6 >= 0) {
+		__raw_writel(params->m6, dpll_regs->cm_div_m6_dpll);
+/*		print_str("checking cm_div_m6_dpll reg:");
+		print_hex(__raw_readl(dpll_regs->cm_div_m6_dpll));
+		print_nl(); */
+	}
 }
 
 /*
@@ -145,7 +169,7 @@ static inline void wait_for_lock(const struct dpll_regs *dpll_regs)
 {
         if (!wait_on_value(ST_DPLL_CLK_MASK, ST_DPLL_CLK_MASK,
                            (void *)dpll_regs->cm_idlest_dpll, LDELAY)) {
-                print_str_nl("DPLL locking failed");
+//                print_str_nl("DPLL locking failed");
                 while(1); // hang();
         }
 /*	print_str("checking cm_idlest_dpll reg for lock:");
@@ -163,12 +187,6 @@ u32 get_sys_clk_index(void)
 	return ((ind & CTRL_SYSBOOT_15_14_MASK) >> CTRL_SYSBOOT_15_14_SHIFT);
 }
 
-const struct dpll_params *get_dpll_core_params(void)
-{
-        int ind = get_sys_clk_index();
-
-        return &dpll_core_1000MHz[ind];
-}
 /*
  * we are accessing CM_CLKMODE_DPLL_CORE Register and put this
  * reg in MN bypass mode => bits(2,0)=100
@@ -204,9 +222,6 @@ static inline void wait_for_bypass(const struct dpll_regs *dpll_regs)
                            (void *)dpll_regs->cm_idlest_dpll, LDELAY)) {
                 print_str_nl("Bypassing DPLL failed");
         }
-/*	print_str("checking cm_idlest_dpll reg for bypass:");
-	print_hex(__raw_readl(dpll_regs->cm_idlest_dpll));
-	print_nl(); */
 }
 
 void bypass_dpll(const struct dpll_regs *dpll_regs)
@@ -215,6 +230,9 @@ void bypass_dpll(const struct dpll_regs *dpll_regs)
         wait_for_bypass(dpll_regs);
 /*	print_str("checking cm_clockmode_dpll mode:");
 	print_hex(__raw_readl(dpll_regs->cm_clkmode_dpll));
+	print_nl();
+	print_str("checking cm_idlest_dpll reg for bypass:");
+	print_hex(__raw_readl(dpll_regs->cm_idlest_dpll));
 	print_nl(); */
 }
 
@@ -254,11 +272,20 @@ void do_setup_dpll(const struct dpll_regs *dpll_regs, const struct dpll_params *
         wait_for_lock(dpll_regs);
 }
 
+const struct dpll_params *get_dpll_core_params(void)
+{
+        int ind = get_sys_clk_index();
+
+//	print_str_nl("CORE dpll config start");
+        return &dpll_core_1000MHz[ind];
+}
+
 const struct dpll_params *get_dpll_mpu_params(void)
 {
 	int ind = get_sys_clk_index();
         int freq = am335x_get_efuse_mpu_max_freq();
 	
+//	print_str_nl("MPU dpll config start");
 	if(freq == MPUPLL_M_1000)
 		return &dpll_mpu_opp[ind][5];
 }
@@ -267,13 +294,15 @@ const struct dpll_params *get_dpll_per_params(void)
 {
         int ind = get_sys_clk_index();
 
-        return &dpll_per_192MHz[ind];
+//	print_str_nl("PER dpll config start");
+	return &dpll_per_192MHz[ind];
 }
 
 const struct dpll_params *get_dpll_ddr_params(void)
 {
         int ind = get_sys_clk_index();
 
+//	print_str_nl("DDR dpll config start");
 	return &dpll_ddr3_400MHz[ind];
 }
 
@@ -287,12 +316,20 @@ void setup_dplls(void)
  */
         params = get_dpll_core_params();
         do_setup_dpll(&dpll_core_regs, params);
+//	print_str_nl("CORE dpll config done");
 
         params = get_dpll_mpu_params();
         do_setup_dpll(&dpll_mpu_regs, params);
+//	print_str_nl("MPU dpll config done");
 
-        params = get_dpll_per_params();
-        do_setup_dpll(&dpll_per_regs, params);
+/* Programming PER DPLL not required as it is already done by bootrom
+ * but still tried to program, unable to write into its registers
+ * dont know why, so ignoring.... 	
+	params = get_dpll_per_params();
+	do_setup_dpll1(&dpll_per_regs, params);
+	print_str_nl("PER dpll config done");
+*/
+
 /*
  * CM_CLKDCOLDO_DPLL_PER is the register that provides controls over the digitally controlled oscillator output 
  * of the PER DPLL. Enable this clock and force it to stay enabled.
@@ -301,4 +338,5 @@ void setup_dplls(void)
 
         params = get_dpll_ddr_params();
         do_setup_dpll(&dpll_ddr_regs, params);
+//	print_str_nl("DDR dpll config done");
 }
